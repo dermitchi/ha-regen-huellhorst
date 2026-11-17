@@ -6,3 +6,4 @@ PROJEKT.md
 deploy.py
 .keys/
 *.pem
+pi/

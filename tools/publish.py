@@ -2,7 +2,8 @@
 
 Usage: python3 publish.py <private key.pem> [--heartbeat] <state of binary_sensor.regen> <state of sensor.batterie>
 Run it when the rain sensor changes and, with --heartbeat, every 15 minutes (ntfy's free limit is 250 messages a day
-per IP). Heartbeats are skipped once fewer than LOW_LEFT messages are left, so real changes still get through.
+per IP). Heartbeats are skipped once fewer than LOW_LEFT messages are left, so real changes still get through;
+changes stop at MIN_LEFT.
 """
 import base64
 import json
@@ -13,7 +14,8 @@ from datetime import datetime, timezone
 from cryptography.hazmat.primitives import serialization
 
 TOPIC_URL = "https://ntfy.sh/regen-huellhorst-dermitchi"
-LOW_LEFT = 40
+LOW_LEFT = 40  # below this only real changes are sent
+MIN_LEFT = 3  # below this nothing is sent, so the day can never run completely dry
 # entity id, name, device class, unit, state class – the receivers show exactly these entities
 ENTITIES = [
     ("binary_sensor.regen", "Regen", "moisture", None, None),
@@ -43,10 +45,10 @@ def messages_left() -> int:
 if __name__ == "__main__":
     key = serialization.load_pem_private_key(open(sys.argv[1], "rb").read(), None)
     args = sys.argv[2:]
-    if heartbeat := args[:1] == ["--heartbeat"]:
-        args = args[1:]
-        if (left := messages_left()) < LOW_LEFT:
-            sys.exit(f"only {left} messages left today, heartbeat skipped")
+    heartbeat = args[:1] == ["--heartbeat"]
+    args = args[heartbeat:]
+    if (left := messages_left()) < (LOW_LEFT if heartbeat else MIN_LEFT):
+        sys.exit(f"only {left} messages left today, skipped")
     body = build(args, key)
     with urllib.request.urlopen(urllib.request.Request(TOPIC_URL, data=body), timeout=15) as resp:
         print(resp.status)
