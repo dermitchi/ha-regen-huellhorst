@@ -1,0 +1,13 @@
+{
+  "domain": "regen_huellhorst",
+  "name": "Regen Hüllhorst",
+  "codeowners": ["@dermitchi"],
+  "config_flow": true,
+  "documentation": "https://github.com/dermitchi/ha-regen-huellhorst",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/dermitchi/ha-regen-huellhorst/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.2.0"
+}

@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Regen Hüllhorst",
+        "description": "Adds the current rain data from Hüllhorst. Nothing to configure, the values update every few minutes."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Regen Hüllhorst is already set up."
+    }
+  }
+}
