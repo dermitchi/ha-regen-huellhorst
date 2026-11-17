@@ -4,9 +4,10 @@ from datetime import timedelta
 
 DOMAIN = "regen_huellhorst"
 NAME = "Regen Hüllhorst"
-# Public feed that the rain sensor in Hüllhorst writes to (gist, only the owner can edit it).
-# The API is read, not the raw URL: raw is cached for 5 minutes, the API is not.
-FEED_URL = "https://api.github.com/gists/5251d98c23afedfacb2c1cba0d8dd525"
-FEED_FILE = "regen-huellhorst.json"
-SCAN_INTERVAL = timedelta(minutes=2)  # GitHub allows 60 anonymous API calls per hour and IP, 304 answers count too
-STALE_AFTER = timedelta(hours=1)  # no fresh feed for this long: show unavailable instead of an old "dry"
+# The sensor in Hüllhorst publishes signed messages to this public ntfy topic. Anyone can write to it,
+# so every message is checked against PUBLIC_KEY; only the owner of the private key can make valid ones.
+NTFY_URL = "https://ntfy.sh/regen-huellhorst-dermitchi/json"
+PUBLIC_KEY = "498PjI7wJBIpak3eDA7RKOKESBw/igo6U1jKoBJ3twg="
+SCAN_INTERVAL = timedelta(minutes=5)  # fallback poll and staleness check; live updates come through the open stream
+STALE_AFTER = timedelta(hours=1)  # no valid message for this long: show unavailable instead of an old "dry"
+MAX_FUTURE = timedelta(minutes=10)  # tolerated clock difference to the sender
