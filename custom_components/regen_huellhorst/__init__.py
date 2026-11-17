@@ -51,7 +51,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: RegenConfigEntry) -> boo
         except (ClientError, TimeoutError, ValueError) as err:
             raise UpdateFailed(err) from err
         if (data := newest(bodies(lines), coordinator.data)) is None:
-            raise UpdateFailed("no valid message from Hüllhorst in the last hour")
+            raise UpdateFailed("no valid message from Hüllhorst in the last 30 minutes")
         return data
 
     coordinator = DataUpdateCoordinator(

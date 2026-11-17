@@ -1,7 +1,7 @@
 """Sender side: signs the current sensor values and publishes them to the ntfy topic.
 
 Usage: python3 publish.py <private key.pem> [--heartbeat] <state of binary_sensor.regen> <state of sensor.batterie>
-Run it when the rain sensor changes and, with --heartbeat, every 15 minutes (ntfy's free limit is 250 messages a day
+Run it when the rain sensor changes and, with --heartbeat, every 10 minutes (ntfy's free limit is 250 messages a day
 per IP). Heartbeats are skipped once fewer than LOW_LEFT messages are left, so real changes still get through;
 changes stop at MIN_LEFT.
 """
