@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
@@ -12,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import FEED_URL, NAME, SCAN_INTERVAL
+from .const import FEED_FILE, FEED_URL, NAME, SCAN_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR]
@@ -23,14 +24,24 @@ type RegenConfigEntry = ConfigEntry[DataUpdateCoordinator[dict[str, Any]]]
 async def async_setup_entry(hass: HomeAssistant, entry: RegenConfigEntry) -> bool:
     session = async_get_clientsession(hass)
 
+    last: dict[str, Any] = {}  # ETag + data of the last full answer
+
     async def fetch() -> dict[str, Any]:
+        headers = {"Accept": "application/vnd.github+json"}
+        if "etag" in last:
+            headers["If-None-Match"] = last["etag"]
         try:
-            async with session.get(FEED_URL, timeout=10) as resp:
+            async with session.get(FEED_URL, headers=headers, timeout=10) as resp:
+                if resp.status == 304:
+                    return last["data"]
                 resp.raise_for_status()
-                data = await resp.json(content_type=None)  # gist raw serves text/plain
-            if not (isinstance(data, dict) and isinstance(data.get("entities"), dict) and "updated" in data):
-                raise ValueError("unexpected feed shape")
-            return data
+                data = json.loads((await resp.json())["files"][FEED_FILE]["content"])
+                if not (isinstance(data, dict) and isinstance(data.get("entities"), dict) and "updated" in data):
+                    raise ValueError("unexpected feed shape")
+                last["data"] = data
+                if etag := resp.headers.get("ETag"):
+                    last["etag"] = etag
+                return data
         except (ClientError, TimeoutError, ValueError, KeyError, TypeError) as err:
             raise UpdateFailed(err) from err
 
